@@ -12,7 +12,7 @@ from utils.model import get_model_inference, get_vocoder
 from utils.tools import to_device, synth_samples
 from dataset import TextDataset
 from text import text_to_sequence
-
+from buckwalter import bw2ar
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
