@@ -8,13 +8,12 @@ import yaml
 import numpy as np
 from torch.utils.data import DataLoader
 from pypinyin import pinyin, Style
-
 from utils.model import get_model_inference, get_vocoder
 from utils.tools import to_device, synth_samples
 from dataset import TextDataset
 from text import text_to_sequence
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 
@@ -49,7 +48,7 @@ def synthesize(model, step, configs, vocoder, batchs, control_values):
     pitch_control, energy_control, duration_control = control_values
 
     for batch in batchs:
-        batch = to_device(batch, device)
+        batch = to_device(batch, DEVICE)
         with torch.no_grad():
             # Forward
             output = model(
@@ -79,10 +78,10 @@ def infer(text, restore_step = 'model', bw = True, pitch_control = 1.0, energy_c
     configs = (preprocess_config, model_config, train_config)
 
     # Get model
-    model = get_model_inference(configs, device, train=False)
+    model = get_model_inference(configs, DEVICE, train=False)
 
     # Load vocoder
-    vocoder = get_vocoder(model_config, device)
+    vocoder = get_vocoder(model_config, DEVICE)
 
     ids = raw_texts = [text[:100]]
     speakers = np.array([0])
@@ -93,3 +92,34 @@ def infer(text, restore_step = 'model', bw = True, pitch_control = 1.0, energy_c
     control_values = pitch_control, energy_control, duration_control
 
     synthesize(model, restore_step, configs, vocoder, batchs, control_values)
+
+def prepare_tts_model(configs, vocoder_config_path, speaker_pre_trained_path):
+    model_config = configs[1]
+
+    # Get model
+    model = get_model_inference(configs, DEVICE, train=False)
+
+    # Load vocoder
+    vocoder = get_vocoder(model_config, DEVICE, vocoder_config_path, speaker_pre_trained_path)
+    return model, vocoder, configs
+
+
+def infer_tts(
+    text,
+    model,
+    vocoder,
+    configs,
+    bw=True,
+    apply_tshkeel=False,
+    pitch_control=1.0,
+    energy_control=1.0,
+    duration_control=1.0,
+):
+    control_values = pitch_control, energy_control, duration_control
+    (preprocess_config, _, _) = configs
+    ids = raw_texts = [text[:100]]
+    speakers = np.array([0])
+    texts = np.array([preprocess_arabic(text, preprocess_config, bw=bw, ts=apply_tshkeel)])
+    text_lens = np.array([len(texts[0])])
+    batchs = [(ids, raw_texts, speakers, texts, text_lens, max(text_lens))]
+    synthesize(model, "", configs, vocoder, batchs, control_values)
