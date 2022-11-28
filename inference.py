@@ -67,7 +67,7 @@ def synthesize(model, step, configs, vocoder, batchs, control_values):
             )
 
 
-def infer(text, restore_step = 'model', bw = True, pitch_control = 1.0, energy_control = 1.0, duration_control = 1.0):
+def infer(text, restore_step = 'model',model_url=None, bw = True, pitch_control = 1.0, energy_control = 1.0, duration_control = 1.0):
     
     # Read Config
     preprocess_config = yaml.load(
@@ -78,7 +78,7 @@ def infer(text, restore_step = 'model', bw = True, pitch_control = 1.0, energy_c
     configs = (preprocess_config, model_config, train_config)
 
     # Get model
-    model = get_model_inference(configs, DEVICE, train=False)
+    model = get_model_inference(configs, DEVICE,model_url,train=False)
 
     # Load vocoder
     vocoder = get_vocoder(model_config, DEVICE)
@@ -93,11 +93,11 @@ def infer(text, restore_step = 'model', bw = True, pitch_control = 1.0, energy_c
 
     synthesize(model, restore_step, configs, vocoder, batchs, control_values)
 
-def prepare_tts_model(configs, vocoder_config_path, speaker_pre_trained_path):
+def prepare_tts_model(configs, vocoder_config_path, speaker_pre_trained_path,model_url):
     model_config = configs[1]
 
     # Get model
-    model = get_model_inference(configs, DEVICE, train=False)
+    model = get_model_inference(configs, DEVICE, model_url,train=False)
 
     # Load vocoder
     vocoder = get_vocoder(model_config, DEVICE, vocoder_config_path, speaker_pre_trained_path)
