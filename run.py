@@ -2,7 +2,7 @@ import torch
 import yaml
 
 from inference import infer_tts, prepare_tts_model
-from klaam.utils.utils import load_file_to_data, predict
+from utils.utils import load_file_to_data, predict
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -16,6 +16,7 @@ class TextToSpeech:
         vocoder_config_path=None,
         speaker_pre_trained_path=None,
         root_path=None,
+        Model_URL=None,
     ):
         self.prepare_tts_model = yaml.load(open(prepare_tts_model_path, "r"), Loader=yaml.FullLoader)
         # TODO: fix this trick
@@ -31,7 +32,7 @@ class TextToSpeech:
         self.vocoder_config_path = vocoder_config_path
         self.speaker_pre_trained_path = speaker_pre_trained_path
         self.model, self.vocoder, self.configs = prepare_tts_model(
-            self.configs, self.vocoder_config_path, self.speaker_pre_trained_path
+            self.configs, self.vocoder_config_path, self.speaker_pre_trained_path,Model_URL
         )
 
     def synthesize(self, text, bw=False, apply_tshkeel=False):
