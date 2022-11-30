@@ -17,28 +17,49 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 
-def preprocess_arabic(text, preprocess_config, bw = False):
+# def preprocess_arabic(text, preprocess_config, bw = False):
 
-    text = text.rstrip(punctuation)
-    if bw:
-        text = buckwalter.untrans(text)
-    phones = ''
-    for word in text.split(' '):
-        if word in punctuation:
-          pass 
-        elif len(word.strip()) > 0:
-          phones+=phonetise(word)[0]
+#     text = text.rstrip(punctuation)
+#     if bw:
+#         text = buckwalter.untrans(text)
+#     phones = ''
+#     for word in text.split(' '):
+#         if word in punctuation:
+#           pass 
+#         elif len(word.strip()) > 0:
+#           phones+=phonetise(word)[0]
         
-    phones = "{" + "}{".join(phones.split(' ')) + "}"
-    phones = phones.replace("}{", " ")
+#     phones = "{" + "}{".join(phones.split(' ')) + "}"
+#     phones = phones.replace("}{", " ")
+
+#     print("Raw Text Sequence: {}".format(text))
+#     print("Phoneme Sequence: {}".format(phones))
+#     sequence = np.array(
+#         #TO_DO
+#         text_to_sequence(
+#             phones, preprocess_config["preprocessing"]["text"]["text_cleaners"]
+#         )
+#     )
+
+#     return np.array(sequence)
+
+def preprocess_arabic(text, preprocess_config, bw=False, ts=False):
+
+    if bw:
+        text = "".join([bw2ar[l] if l in bw2ar else l for l in text])
+
+    if ts:
+        vocalizer = mishkal.tashkeel.TashkeelClass()
+        text = vocalizer.tashkeel(text).strip()
+
+    phones = phonetise(text)[0]
+    phones = "{" + phones + "}"
 
     print("Raw Text Sequence: {}".format(text))
     print("Phoneme Sequence: {}".format(phones))
     sequence = np.array(
-        #TO_DO
-        text_to_sequence(
-            phones, preprocess_config["preprocessing"]["text"]["text_cleaners"]
-        )
+        # TO_DO
+        text_to_sequence(phones, preprocess_config["preprocessing"]["text"]["text_cleaners"])
     )
 
     return np.array(sequence)
