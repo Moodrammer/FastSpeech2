@@ -13,6 +13,7 @@ from utils.tools import to_device, synth_samples
 from dataset import TextDataset
 from text import text_to_sequence
 from buckwalter import bw2ar
+import mishkal.tashkeel
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
