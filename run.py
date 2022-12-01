@@ -20,7 +20,6 @@ class TextToSpeech:
     ):
         self.prepare_tts_model = yaml.load(open(prepare_tts_model_path, "r"), Loader=yaml.FullLoader)
         # TODO: fix this trick
-        print(self.prepare_tts_model["path"]["stats_path"][0])
         if self.prepare_tts_model["path"]["stats_path"][0] != "/":
             self.prepare_tts_model["path"]["stats_path"] = f"{root_path}/{self.prepare_tts_model['path']['stats_path']}"
         if self.prepare_tts_model["path"]["lexicon_path"][0] != "/":
