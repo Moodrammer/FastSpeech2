@@ -1,4 +1,5 @@
 lang-trans
+mishkal
 arabic-pronounce
 inflect == 4.1.0
 numba == 0.48
