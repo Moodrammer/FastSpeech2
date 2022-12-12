@@ -21,7 +21,7 @@ ara = ['yy', "ii1'", 'S', 'Z', "I0'", 'ii0', 'p', 'i0', 'hh', 'uu0', 'aa', 'UU0'
 _ara = ["@" + s for s in ara]
 
 ipa = ['j', 'a', 'ʕ', 'n', 'i', 'm', 'ʔ', 'l', 'ð', 'u', 'k', 's', 't', 'f', 'd', 'h', 'w', 'ħ', 'b', 'r', 'z', 'θ', 'ɣ', 'q', 'ʃ', 'dʒ', 'dˤ', 'χ', 'β', 'ðˤ']
-_ipa = ["@" + s for s in ara]
+_ipa = ["@" + s for s in ipa]
 
 # Export all symbols:
 #TO_DO
