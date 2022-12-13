@@ -1,0 +1,688 @@
+diff --git a/.gitignore b/.gitignore
+index f6c5398..c4a9090 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -115,4 +115,4 @@ raw_data/
+ output/
+ *.npy
+ TextGrid/
+-hifigan/*.pth.tar
++hifigan/*.pth.zip
+diff --git a/config/Arabic/model.yaml b/config/Arabic/model.yaml
+new file mode 100644
+index 0000000..e11b318
+--- /dev/null
++++ b/config/Arabic/model.yaml
+@@ -0,0 +1,37 @@
++transformer:
++  encoder_layer: 4
++  encoder_head: 2
++  encoder_hidden: 256
++  decoder_layer: 6
++  decoder_head: 2
++  decoder_hidden: 256
++  conv_filter_size: 1024
++  conv_kernel_size: [9, 1]
++  encoder_dropout: 0.2
++  decoder_dropout: 0.2
++
++variance_predictor:
++  filter_size: 256
++  kernel_size: 3
++  dropout: 0.5
++
++variance_embedding:
++  pitch_quantization: "linear" # support 'linear' or 'log', 'log' is allowed only if the pitch values are not normalized during preprocessing
++  energy_quantization: "linear" # support 'linear' or 'log', 'log' is allowed only if the energy values are not normalized during preprocessing
++  n_bins: 256
++
++# gst:
++#   use_gst: False
++#   conv_filters: [32, 32, 64, 64, 128, 128]
++#   gru_hidden: 128
++#   token_size: 128
++#   n_style_token: 10
++#   attn_head: 4
++
++multi_speaker: False
++
++max_seq_len: 1000
++
++vocoder:
++  model: "HiFi-GAN" # support 'HiFi-GAN', 'MelGAN'
++  speaker: "universal" # support  'LJSpeech', 'universal'
+diff --git a/config/Arabic/preprocess.yaml b/config/Arabic/preprocess.yaml
+new file mode 100644
+index 0000000..4de4d44
+--- /dev/null
++++ b/config/Arabic/preprocess.yaml
+@@ -0,0 +1,31 @@
++dataset: "Arabic"
++
++path:
++  corpus_path: "/content/arabic-speech-corpus"
++  lexicon_path: "lexicon/librispeech-lexicon.txt"
++  raw_path: "/content/raw_data/Arabic"
++  preprocessed_path: "/content/preprocessed_data/Arabic"
++  stats_path: "./"
++
++preprocessing:
++  val_size: 2
++  text:
++    text_cleaners: []
++    language: "ar"
++  audio:
++    sampling_rate: 22050
++    max_wav_value: 32768.0
++  stft:
++    filter_length: 1024
++    hop_length: 256
++    win_length: 1024
++  mel:
++    n_mel_channels: 80
++    mel_fmin: 0
++    mel_fmax: 8000 # please set to 8000 for HiFi-GAN vocoder, set to null for MelGAN vocoder
++  pitch:
++    feature: "phoneme_level" # support 'phoneme_level' or 'frame_level'
++    normalization: True
++  energy:
++    feature: "phoneme_level" # support 'phoneme_level' or 'frame_level'
++    normalization: True
+diff --git a/config/Arabic/train.yaml b/config/Arabic/train.yaml
+new file mode 100644
+index 0000000..ab52cb1
+--- /dev/null
++++ b/config/Arabic/train.yaml
+@@ -0,0 +1,20 @@
++path:
++  ckpt_path: "/content/drive/MyDrive/Speech/TTS/ckpt/Arabicv3"
++  log_path: "/content/drive/MyDrive/Speech/TTS/log/Arabicv3"
++  result_path: "/content/drive/MyDrive/Speech/TTS/result/Arabicv3"
++optimizer:
++  batch_size: 1
++  betas: [0.9, 0.98]
++  eps: 0.000000001
++  weight_decay: 0.0
++  grad_clip_thresh: 1.0
++  grad_acc_step: 1
++  warm_up_step: 4000
++  anneal_steps: [300000, 400000, 500000]
++  anneal_rate: 0.3
++step:
++  total_step: 900000
++  log_step: 1000
++  synth_step: 1000
++  val_step: 10000
++  save_step: 50000
+diff --git a/config/LJSpeech/preprocess.yaml b/config/LJSpeech/preprocess.yaml
+index 8d5364a..6e212b7 100644
+--- a/config/LJSpeech/preprocess.yaml
++++ b/config/LJSpeech/preprocess.yaml
+@@ -1,7 +1,7 @@
+ dataset: "LJSpeech"
+ 
+ path:
+-  corpus_path: "/home/ming/Data/LJSpeech-1.1"
++  corpus_path: "/content/LJSpeech-1.1"
+   lexicon_path: "lexicon/librispeech-lexicon.txt"
+   raw_path: "./raw_data/LJSpeech"
+   preprocessed_path: "./preprocessed_data/LJSpeech"
+diff --git a/config/LJSpeech/train.yaml b/config/LJSpeech/train.yaml
+index b0eb8e1..30c6b61 100644
+--- a/config/LJSpeech/train.yaml
++++ b/config/LJSpeech/train.yaml
+@@ -1,7 +1,7 @@
+ path:
+-  ckpt_path: "./output/ckpt/LJSpeech"
+-  log_path: "./output/log/LJSpeech"
+-  result_path: "./output/result/LJSpeech"
++  ckpt_path: "/content/drive/MyDrive/Speech/TTS/ckpt/LJSpeech"
++  log_path: "/content/drive/MyDrive/Speech/TTS/log/LJSpeech"
++  result_path: "/content/drive/MyDrive/Speech/TTS/result/LJSpeech"
+ optimizer:
+   batch_size: 16
+   betas: [0.9, 0.98]
+@@ -17,4 +17,4 @@ step:
+   log_step: 100
+   synth_step: 1000
+   val_step: 1000
+-  save_step: 100000
++  save_step: 50000
+diff --git a/hifigan/generator_LJSpeech.pth.tar.zip b/hifigan/generator_universal.pth.tar
+similarity index 77%
+rename from hifigan/generator_LJSpeech.pth.tar.zip
+rename to hifigan/generator_universal.pth.tar
+index 5b33a5c..6a43762 100644
+Binary files a/hifigan/generator_LJSpeech.pth.tar.zip and b/hifigan/generator_universal.pth.tar differ
+diff --git a/inference.py b/inference.py
+new file mode 100644
+index 0000000..2865db9
+--- /dev/null
++++ b/inference.py
+@@ -0,0 +1,95 @@
++import re
++import argparse
++from string import punctuation
++from arabic_pronounce import phonetise
++from lang_trans.arabic import buckwalter
++import torch
++import yaml
++import numpy as np
++from torch.utils.data import DataLoader
++from pypinyin import pinyin, Style
++
++from utils.model import get_model_inference, get_vocoder
++from utils.tools import to_device, synth_samples
++from dataset import TextDataset
++from text import text_to_sequence
++
++device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
++
++
++
++def preprocess_arabic(text, preprocess_config, bw = False):
++
++    text = text.rstrip(punctuation)
++    if bw:
++        text = buckwalter.untrans(text)
++    phones = ''
++    for word in text.split(' '):
++        if word in punctuation:
++          pass 
++        elif len(word.strip()) > 0:
++          phones+=phonetise(word)[0]
++        
++    phones = "{" + "}{".join(phones.split(' ')) + "}"
++    phones = phones.replace("}{", " ")
++
++    print("Raw Text Sequence: {}".format(text))
++    print("Phoneme Sequence: {}".format(phones))
++    sequence = np.array(
++        #TO_DO
++        text_to_sequence(
++            phones, preprocess_config["preprocessing"]["text"]["text_cleaners"]
++        )
++    )
++
++    return np.array(sequence)
++
++def synthesize(model, step, configs, vocoder, batchs, control_values):
++    preprocess_config, model_config, train_config = configs
++    pitch_control, energy_control, duration_control = control_values
++
++    for batch in batchs:
++        batch = to_device(batch, device)
++        with torch.no_grad():
++            # Forward
++            output = model(
++                *(batch[2:]),
++                p_control=pitch_control,
++                e_control=energy_control,
++                d_control=duration_control
++            )
++            synth_samples(
++                batch,
++                output,
++                vocoder,
++                model_config,
++                preprocess_config,
++                train_config["path"]["result_path"],
++            )
++
++
++def infer(text, restore_step = 'model', bw = True, pitch_control = 1.0, energy_control = 1.0, duration_control = 1.0):
++    
++    # Read Config
++    preprocess_config = yaml.load(
++        open("config/Arabic/preprocess.yaml", "r"), Loader=yaml.FullLoader
++    )
++    model_config = yaml.load(open('config/Arabic/model.yaml', "r"), Loader=yaml.FullLoader)
++    train_config = yaml.load(open('config/Arabic/train.yaml', "r"), Loader=yaml.FullLoader)
++    configs = (preprocess_config, model_config, train_config)
++
++    # Get model
++    model = get_model_inference(configs, device, train=False)
++
++    # Load vocoder
++    vocoder = get_vocoder(model_config, device)
++
++    ids = raw_texts = [text[:100]]
++    speakers = np.array([0])
++    texts = np.array([preprocess_arabic(text, preprocess_config, bw = bw)])
++    text_lens = np.array([len(texts[0])])
++    batchs = [(ids, raw_texts, speakers, texts, text_lens, max(text_lens))]
++
++    control_values = pitch_control, energy_control, duration_control
++
++    synthesize(model, restore_step, configs, vocoder, batchs, control_values)
+diff --git a/model/modules.py b/model/modules.py
+index f694d56..86bc9d4 100644
+--- a/model/modules.py
++++ b/model/modules.py
+@@ -38,13 +38,20 @@ class VarianceAdaptor(nn.Module):
+         n_bins = model_config["variance_embedding"]["n_bins"]
+         assert pitch_quantization in ["linear", "log"]
+         assert energy_quantization in ["linear", "log"]
+-        with open(
++        try:
++            with open(
+             os.path.join(preprocess_config["path"]["preprocessed_path"], "stats.json")
+         ) as f:
+-            stats = json.load(f)
+-            pitch_min, pitch_max = stats["pitch"][:2]
+-            energy_min, energy_max = stats["energy"][:2]
+-
++                stats = json.load(f)
++                pitch_min, pitch_max = stats["pitch"][:2]
++                energy_min, energy_max = stats["energy"][:2]
++        except:
++            with open(
++            os.path.join(preprocess_config["path"]["stats_path"], "stats.json")
++        ) as f:
++                stats = json.load(f)
++                pitch_min, pitch_max = stats["pitch"][:2]
++                energy_min, energy_max = stats["energy"][:2]
+         if pitch_quantization == "log":
+             self.pitch_bins = nn.Parameter(
+                 torch.exp(
+diff --git a/prepare_align.py b/prepare_align.py
+index 6bf8e5b..e86e4f1 100644
+--- a/prepare_align.py
++++ b/prepare_align.py
+@@ -2,7 +2,7 @@ import argparse
+ 
+ import yaml
+ 
+-from preprocessor import ljspeech, aishell3, libritts
++from preprocessor import ljspeech, aishell3, libritts, arabic
+ 
+ 
+ def main(config):
+@@ -12,6 +12,8 @@ def main(config):
+         aishell3.prepare_align(config)
+     if "LibriTTS" in config["dataset"]:
+         libritts.prepare_align(config)
++    if "Arabic" in config["dataset"]:
++        arabic.prepare_align(config)
+ 
+ 
+ if __name__ == "__main__":
+diff --git a/preprocessor/arabic.py b/preprocessor/arabic.py
+new file mode 100644
+index 0000000..ee964df
+--- /dev/null
++++ b/preprocessor/arabic.py
+@@ -0,0 +1,39 @@
++import os
++
++import librosa
++import numpy as np
++from scipy.io import wavfile
++from tqdm import tqdm
++
++from text import _clean_text
++
++
++def prepare_align(config):
++    in_dir = config["path"]["corpus_path"]
++    out_dir = config["path"]["raw_path"]
++    sampling_rate = config["preprocessing"]["audio"]["sampling_rate"]
++    max_wav_value = config["preprocessing"]["audio"]["max_wav_value"]
++    cleaners = config["preprocessing"]["text"]["text_cleaners"]
++    speaker = "Arabic"
++    with open(os.path.join(in_dir, "metadata.csv"), encoding="utf-8") as f:
++        for line in tqdm(f):
++            parts = line.strip().split("|")
++            base_name = parts[0]
++            text = parts[1]
++            text = _clean_text(text, cleaners)
++
++            wav_path = os.path.join(in_dir, "wav", "{}.wav".format(base_name))
++            if os.path.exists(wav_path):
++                os.makedirs(os.path.join(out_dir, speaker), exist_ok=True)
++                wav, _ = librosa.load(wav_path, sampling_rate)
++                wav = wav / max(abs(wav)) * max_wav_value
++                wavfile.write(
++                    os.path.join(out_dir, speaker, "{}.wav".format(base_name)),
++                    sampling_rate,
++                    wav.astype(np.int16),
++                )
++                with open(
++                    os.path.join(out_dir, speaker, "{}.lab".format(base_name)),
++                    "w",
++                ) as f1:
++                    f1.write(text)
+\ No newline at end of file
+diff --git a/preprocessor/preprocessor.py b/preprocessor/preprocessor.py
+index 0c2c118..235f3ce 100644
+--- a/preprocessor/preprocessor.py
++++ b/preprocessor/preprocessor.py
+@@ -18,6 +18,7 @@ class Preprocessor:
+         self.config = config
+         self.in_dir = config["path"]["raw_path"]
+         self.out_dir = config["path"]["preprocessed_path"]
++        self.out_dir = config["path"]["stats_path"]
+         self.val_size = config["preprocessing"]["val_size"]
+         self.sampling_rate = config["preprocessing"]["audio"]["sampling_rate"]
+         self.hop_length = config["preprocessing"]["stft"]["hop_length"]
+@@ -132,7 +133,8 @@ class Preprocessor:
+                 ],
+             }
+             f.write(json.dumps(stats))
+-
++       with open(os.path.join(self.stats_path, "stats.json"), "w") as f:
++            f.write(json.dumps(stats))
+         print(
+             "Total time: {} hours".format(
+                 n_frames * self.hop_length / self.sampling_rate / 3600
+@@ -160,7 +162,7 @@ class Preprocessor:
+         )
+ 
+         # Get alignments
+-        textgrid = tgt.io.read_textgrid(tg_path)
++        textgrid = tgt.io.read_textgrid(tg_path, encoding='utf-8-sig')
+         phone, duration, start, end = self.get_alignment(
+             textgrid.get_tier_by_name("phones")
+         )
+diff --git a/requirements.txt b/requirements.txt
+index c2bbeed..696cd23 100644
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -1,17 +1,10 @@
+-g2p-en == 2.1.0
++lang-trans
++arabic-pronounce
+ inflect == 4.1.0
+-librosa == 0.7.2
+-matplotlib == 3.2.2
+ numba == 0.48
+-numpy == 1.19.0
+ pypinyin==0.39.0
+ pyworld == 0.2.10
+ PyYAML==5.4.1
+-scikit-learn==0.23.2
+-scipy == 1.5.0
+-soundfile==0.10.3.post1
+-tensorboard == 2.2.2
+ tgt == 1.4.4
+-torch == 1.7.0
+ tqdm==4.46.1
+ unidecode == 1.1.1
+\ No newline at end of file
+diff --git a/stats.json b/stats.json
+new file mode 100755
+index 0000000..028f3ea
+--- /dev/null
++++ b/stats.json
+@@ -0,0 +1 @@
++{"pitch": [-2.9475444444949614, 17.369397121366628, 129.35456402290578, 17.851444310458685], "energy": [-2.0925259590148926, 1.9878625869750977, 91.95959330460718, 43.937298462759045]}
+\ No newline at end of file
+diff --git a/synthesize.py b/synthesize.py
+index 59a682a..4b14ce6 100644
+--- a/synthesize.py
++++ b/synthesize.py
+@@ -1,7 +1,8 @@
+ import re
+ import argparse
+ from string import punctuation
+-
++from arabic_pronounce import phonetise
++from lang_trans.arabic import buckwalter
+ import torch
+ import yaml
+ import numpy as np
+@@ -31,6 +32,7 @@ def read_lexicon(lex_path):
+ 
+ def preprocess_english(text, preprocess_config):
+     text = text.rstrip(punctuation)
++    print(text)
+     lexicon = read_lexicon(preprocess_config["path"]["lexicon_path"])
+ 
+     g2p = G2p()
+@@ -41,6 +43,7 @@ def preprocess_english(text, preprocess_config):
+             phones += lexicon[w.lower()]
+         else:
+             phones += list(filter(lambda p: p != " ", g2p(w)))
++
+     phones = "{" + "}{".join(phones) + "}"
+     phones = re.sub(r"\{[^\w\s]?\}", "{sp}", phones)
+     phones = phones.replace("}{", " ")
+@@ -55,6 +58,31 @@ def preprocess_english(text, preprocess_config):
+ 
+     return np.array(sequence)
+ 
++def preprocess_arabic(text, preprocess_config, bw = False):
++
++    text = text.rstrip(punctuation)
++    if bw:
++        text = buckwalter.untrans(text)
++    phones = ''
++    for word in text.split(' '):
++        if word in punctuation:
++          pass 
++        elif len(word.strip()) > 0:
++          phones+=phonetise(word)[0]
++        
++    phones = "{" + "}{".join(phones.split(' ')) + "}"
++    phones = phones.replace("}{", " ")
++
++    print("Raw Text Sequence: {}".format(text))
++    print("Phoneme Sequence: {}".format(phones))
++    sequence = np.array(
++        #TO_DO
++        text_to_sequence(
++            phones, preprocess_config["preprocessing"]["text"]["text_cleaners"]
++        )
++    )
++
++    return np.array(sequence)
+ 
+ def preprocess_mandarin(text, preprocess_config):
+     lexicon = read_lexicon(preprocess_config["path"]["lexicon_path"])
+@@ -76,6 +104,7 @@ def preprocess_mandarin(text, preprocess_config):
+     print("Raw Text Sequence: {}".format(text))
+     print("Phoneme Sequence: {}".format(phones))
+     sequence = np.array(
++        #TO_DO
+         text_to_sequence(
+             phones, preprocess_config["preprocessing"]["text"]["text_cleaners"]
+         )
+@@ -137,6 +166,14 @@ if __name__ == "__main__":
+         default=0,
+         help="speaker ID for multi-speaker synthesis, for single-sentence mode only",
+     )
++
++    parser.add_argument(
++        "--bw",
++        type=bool,
++        default=True,
++        help="whether the input in buckwalter format",
++    )
++
+     parser.add_argument(
+         "-p",
+         "--preprocess_config",
+@@ -206,6 +243,8 @@ if __name__ == "__main__":
+             texts = np.array([preprocess_english(args.text, preprocess_config)])
+         elif preprocess_config["preprocessing"]["text"]["language"] == "zh":
+             texts = np.array([preprocess_mandarin(args.text, preprocess_config)])
++        elif preprocess_config["preprocessing"]["text"]["language"] == "ar":
++            texts = np.array([preprocess_arabic(args.text, preprocess_config, bw = args.bw)])
+         text_lens = np.array([len(texts[0])])
+         batchs = [(ids, raw_texts, speakers, texts, text_lens, max(text_lens))]
+ 
+diff --git a/text/__init__.py b/text/__init__.py
+index 6f036b0..c9faee7 100644
+--- a/text/__init__.py
++++ b/text/__init__.py
+@@ -28,6 +28,7 @@ def text_to_sequence(text, cleaner_names):
+     sequence = []
+ 
+     # Check for curly braces and treat their contents as ARPAbet:
++    #TO_DO
+     while len(text):
+         m = _curly_re.match(text)
+ 
+@@ -35,6 +36,7 @@ def text_to_sequence(text, cleaner_names):
+             sequence += _symbols_to_sequence(_clean_text(text, cleaner_names))
+             break
+         sequence += _symbols_to_sequence(_clean_text(m.group(1), cleaner_names))
++        #TO_DO why do we convert to arpabet
+         sequence += _arpabet_to_sequence(m.group(2))
+         text = m.group(3)
+ 
+diff --git a/text/symbols.py b/text/symbols.py
+index ae99253..39d13e0 100644
+--- a/text/symbols.py
++++ b/text/symbols.py
+@@ -7,6 +7,7 @@ The default is a set of ASCII characters that works well for English or text tha
+ 
+ from text import cmudict, pinyin
+ 
++#TO_DO maybe change the pad
+ _pad = "_"
+ _punctuation = "!'(),.:;? "
+ _special = "-"
+@@ -16,8 +17,11 @@ _silences = ["@sp", "@spn", "@sil"]
+ # Prepend "@" to ARPAbet symbols to ensure uniqueness (some are the same as uppercase letters):
+ _arpabet = ["@" + s for s in cmudict.valid_symbols]
+ _pinyin = ["@" + s for s in pinyin.valid_symbols]
++ara = ['yy', "ii1'", 'S', 'Z', "I0'", 'ii0', 'p', 'i0', 'hh', 'uu0', 'aa', 'UU0', 'U1', 'g', 'ZZ', 'ii1', "u0'", '$$', "I1'", 'DD', 'r', 'i', 'ww', 'dist', 'h', '*', 'H', 'D', '^^', 'ss', 'd', 'j', 'SH', 'q', 'J', 'zz', 'n', 'AA', "uu1'", "AA'", 'EE', "U0'", 'G', 'jj', 'TH', 'f', 'z', 'pp', 'SS', '$', "UU0'", 'l', "u1'", 'b', "i1'", 'U0', "aa'", "a'", '<', 'rr', 'tt', '<<', 'i1', 'nn', 'sil', 'v', 'x', 'w', 'Ah', "uu0'", "II0'", 'xx', 'II0', 'I1', 'E', 'TT', 'a', 't', 'uu1', "i0'", 'u', 'qq', 'gg', 'u0', 'kk', '**', 'k', 'I0', 'A', 'T', "UU1'", '-', 'm', 'll', 'dd', 'u1', 'ff', 'mm', '^', 'bb', 'AH', "ii0'", "A'", 'y', 'HH', 's']
++_ara = ["@" + s for s in ara]
+ 
+ # Export all symbols:
++#TO_DO
+ symbols = (
+     [_pad]
+     + list(_special)
+@@ -26,4 +30,5 @@ symbols = (
+     + _arpabet
+     + _pinyin
+     + _silences
++    + _ara
+ )
+diff --git a/train.py b/train.py
+index d1891d3..9e9280e 100644
+--- a/train.py
++++ b/train.py
+@@ -73,7 +73,7 @@ def main(args, configs):
+     outer_bar.update()
+ 
+     while True:
+-        inner_bar = tqdm(total=len(loader), desc="Epoch {}".format(epoch), position=1)
++        # inner_bar = tqdm(total=len(loader), desc="Epoch {}".format(epoch), position=1)
+         for batchs in loader:
+             for batch in batchs:
+                 batch = to_device(batch, device)
+@@ -165,7 +165,7 @@ def main(args, configs):
+                 step += 1
+                 outer_bar.update(1)
+ 
+-            inner_bar.update(1)
++            # inner_bar.update(1)
+         epoch += 1
+ 
+ 
+diff --git a/utils/model.py b/utils/model.py
+index 45e1f41..1c7f679 100644
+--- a/utils/model.py
++++ b/utils/model.py
+@@ -6,6 +6,8 @@ import numpy as np
+ 
+ import hifigan
+ from model import FastSpeech2, ScheduledOptim
++import gdown
++
+ 
+ 
+ def get_model(args, configs, device, train=False):
+@@ -33,6 +35,21 @@ def get_model(args, configs, device, train=False):
+     model.requires_grad_ = False
+     return model
+ 
++def get_model_inference(configs, device, train=False):
++    (preprocess_config, model_config, train_config) = configs
++
++    model = FastSpeech2(preprocess_config, model_config).to(device)
++    url = 'https://drive.google.com/uc?id=1J7ZP_q-6mryXUhZ-8j9-RIItz2nJGOIX'
++    ckpt_path = 'model.pth.tar'
++    if not os.path.exists(ckpt_path):
++        gdown.download(url, ckpt_path, quiet=False) 
++    ckpt = torch.load(ckpt_path)
++    model.load_state_dict(ckpt["model"])
++
++    model.eval()
++    model.requires_grad_ = False
++    return model
++
+ 
+ def get_param_num(model):
+     num_param = sum(param.numel() for param in model.parameters())
+diff --git a/utils/tools.py b/utils/tools.py
+index f897430..12e4fb6 100644
+--- a/utils/tools.py
++++ b/utils/tools.py
+@@ -125,12 +125,19 @@ def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_con
+     else:
+         energy = targets[10][0, :mel_len].detach().cpu().numpy()
+ 
+-    with open(
++    try:
++       with open(
+         os.path.join(preprocess_config["path"]["preprocessed_path"], "stats.json")
+     ) as f:
+-        stats = json.load(f)
+-        stats = stats["pitch"] + stats["energy"][:2]
+-
++            stats = json.load(f)
++            stats = stats["pitch"] + stats["energy"][:2]
++    
++    except:
++        with open(
++        os.path.join(preprocess_config["path"]["stats_path"], "stats.json")
++    ) as f:
++            stats = json.load(f)
++            stats = stats["pitch"] + stats["energy"][:2]
+     fig = plot_mel(
+         [
+             (mel_prediction.cpu().numpy(), pitch, energy),
+@@ -182,20 +189,20 @@ def synth_samples(targets, predictions, vocoder, model_config, preprocess_config
+             energy = predictions[3][i, :mel_len].detach().cpu().numpy()
+ 
+         with open(
+-            os.path.join(preprocess_config["path"]["preprocessed_path"], "stats.json")
++            os.path.join(preprocess_config["path"]["stats_path"], "stats.json")
+         ) as f:
+             stats = json.load(f)
+             stats = stats["pitch"] + stats["energy"][:2]
+ 
+-        fig = plot_mel(
+-            [
+-                (mel_prediction.cpu().numpy(), pitch, energy),
+-            ],
+-            stats,
+-            ["Synthetized Spectrogram"],
+-        )
+-        plt.savefig(os.path.join(path, "{}.png".format(basename)))
+-        plt.close()
++#         fig = plot_mel(
++#             [
++#                 (mel_prediction.cpu().numpy(), pitch, energy),
++#             ],
++#             stats,
++#             ["Synthetized Spectrogram"],
++#         )
++#         plt.savefig(os.path.join(path, "{}.png".format(basename)))
++#         plt.close()
+ 
+     from .model import vocoder_infer
+ 
+@@ -207,7 +214,7 @@ def synth_samples(targets, predictions, vocoder, model_config, preprocess_config
+ 
+     sampling_rate = preprocess_config["preprocessing"]["audio"]["sampling_rate"]
+     for wav, basename in zip(wav_predictions, basenames):
+-        wavfile.write(os.path.join(path, "{}.wav".format(basename)), sampling_rate, wav)
++        wavfile.write("sample.wav", sampling_rate, wav)
+ 
+ 
+ def plot_mel(data, stats, titles):
