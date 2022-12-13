@@ -1,14 +1,14 @@
 dataset: "Arabic"
 
 path:
-  corpus_path: "/content/arabic-speech-corpus"
+  corpus_path: "/content/drive/MyDrive/Audio/TTS/Datasets/QASR_CORPUS"
   lexicon_path: "lexicon/librispeech-lexicon.txt"
   raw_path: "/content/raw_data/Arabic"
   preprocessed_path: "/content/preprocessed_data/Arabic"
-  stats_path: "FastSpeech2/data/preprocessed_data/"
+  stats_path: "data/preprocessed_data/"
 
 preprocessing:
-  val_size: 2
+  val_size: 100
   text:
     text_cleaners: []
     language: "ar"
