@@ -58,17 +58,19 @@ def preprocess_english(text, preprocess_config):
 
     return np.array(sequence)
 
-def preprocess_arabic(text, preprocess_config, bw = False):
-
-    text = text.rstrip(punctuation)
-    if bw:
-        text = buckwalter.untrans(text)
-    phones = ''
-    for word in text.split(' '):
-        if word in punctuation:
-          pass 
-        elif len(word.strip()) > 0:
-          phones+=phonetise(word)[0]
+def preprocess_arabic(text, preprocess_config, bw = False, ph=True):
+    if not ph:
+        text = text.rstrip(punctuation)
+        if bw:
+            text = buckwalter.untrans(text)
+        phones = ''
+        for word in text.split(' '):
+            if word in punctuation:
+            pass 
+            elif len(word.strip()) > 0:
+            phones+=phonetise(word)[0]
+    else:
+        phones = text
         
     phones = "{" + "}{".join(phones.split(' ')) + "}"
     phones = phones.replace("}{", " ")
