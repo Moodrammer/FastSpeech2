@@ -148,8 +148,8 @@ def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_con
 
     )
     np.save('mel.npy', mel_prediction.cpu())
-        plt.savefig("mel.png")
-        plt.close()
+    plt.savefig("mel.png")
+    plt.close()
 
     if vocoder is not None:
         from .model import vocoder_infer
