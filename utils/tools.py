@@ -147,7 +147,7 @@ def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_con
         ["Synthetized Spectrogram", "Ground-Truth Spectrogram"],
 
     )
-    np.save('mel.npy', mel_prediction.cpu())
+    np.save('mel.npy', mel_prediction.cpu().numpy())
     plt.savefig("mel.png")
     plt.close()
 
@@ -205,7 +205,7 @@ def synth_samples(targets, predictions, vocoder, model_config, preprocess_config
             stats,
             ["Synthetized Spectrogram"],
         )
-        np.save('mel.npy', mel_prediction.cpu())
+        np.save('mel.npy', mel_prediction.cpu().numpy())
         plt.savefig("mel.png")
         plt.close()
 
