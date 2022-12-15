@@ -193,8 +193,7 @@ def synth_samples(targets, predictions, vocoder, model_config, preprocess_config
         ) as f:
             stats = json.load(f)
             stats = stats["pitch"] + stats["energy"][:2]
-        type(mel_prediction)
-        #plot mel spectogram
+        print(type(mel_prediction))
         fig = plot_mel(
             [
                 (mel_prediction.cpu().numpy(), pitch, energy),
@@ -202,7 +201,8 @@ def synth_samples(targets, predictions, vocoder, model_config, preprocess_config
             stats,
             ["Synthetized Spectrogram"],
         )
-        plt.savefig(os.path.join(path, "{}.png".format(basename)))
+        np.save('mel.npy', mel_prediction.cpu())
+        plt.savefig("mel.png")
         plt.close()
 
     from .model import vocoder_infer
