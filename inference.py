@@ -44,7 +44,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 #     return np.array(sequence)
 
-def preprocess_arabic(text, preprocess_config, bw=False, ts=False):
+def preprocess_arabic(text, preprocess_config, bw=False, ts=False, ph=True):
 
     if bw:
         text = "".join([bw2ar[l] if l in bw2ar else l for l in text])
@@ -53,7 +53,10 @@ def preprocess_arabic(text, preprocess_config, bw=False, ts=False):
         vocalizer = mishkal.tashkeel.TashkeelClass()
         text = vocalizer.tashkeel(text).strip()
 
-    phones = phonetise(text)[0]
+    if not ph:
+      phones = phonetise(text)[0]
+    else:
+      phones = text
     phones = "{" + phones + "}"
 
     print("Raw Text Sequence: {}".format(text))
@@ -122,7 +125,7 @@ def prepare_tts_model(configs, vocoder_config_path, speaker_pre_trained_path,mod
     model = get_model_inference(configs, DEVICE, model_url,train=False)
 
     # Load vocoder
-    vocoder = get_vocoder(model_config, DEVICE, vocoder_config_path, speaker_pre_trained_path)
+    vocoder = get_vocoder(model_config, DEVICE)
     return model, vocoder, configs
 
 
