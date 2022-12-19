@@ -1,7 +1,7 @@
 import re
 import argparse
 from string import punctuation
-from phonetise.phonetise_arabic import phonetise
+from phonetise.phonetise_arabic_epseak import phonetise
 from lang_trans.arabic import buckwalter
 import torch
 import yaml
@@ -14,37 +14,11 @@ from dataset import TextDataset
 from text import text_to_sequence
 from buckwalter import bw2ar
 import mishkal.tashkeel
+
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-
-# def preprocess_arabic(text, preprocess_config, bw = False):
-
-#     text = text.rstrip(punctuation)
-#     if bw:
-#         text = buckwalter.untrans(text)
-#     phones = ''
-#     for word in text.split(' '):
-#         if word in punctuation:
-#           pass 
-#         elif len(word.strip()) > 0:
-#           phones+=phonetise(word)[0]
-        
-#     phones = "{" + "}{".join(phones.split(' ')) + "}"
-#     phones = phones.replace("}{", " ")
-
-#     print("Raw Text Sequence: {}".format(text))
-#     print("Phoneme Sequence: {}".format(phones))
-#     sequence = np.array(
-#         #TO_DO
-#         text_to_sequence(
-#             phones, preprocess_config["preprocessing"]["text"]["text_cleaners"]
-#         )
-#     )
-
-#     return np.array(sequence)
-
-def preprocess_arabic(text, preprocess_config, bw=False, ts=False, ph=True):
+def preprocess_arabic(text, preprocess_config, bw=False, ts=False, ph=False):
 
     if bw:
         text = "".join([bw2ar[l] if l in bw2ar else l for l in text])
@@ -54,7 +28,7 @@ def preprocess_arabic(text, preprocess_config, bw=False, ts=False, ph=True):
         text = vocalizer.tashkeel(text).strip()
 
     if not ph:
-      phones = phonetise(text)[0]
+      phones = phonetise(text)
     else:
       phones = text
     phones = "{" + phones + "}"
@@ -135,6 +109,7 @@ def infer_tts(
     vocoder,
     configs,
     bw=True,
+    ph=False,
     apply_tshkeel=False,
     pitch_control=1.0,
     energy_control=1.0,
@@ -144,7 +119,7 @@ def infer_tts(
     (preprocess_config, _, _) = configs
     ids = raw_texts = [text[:100]]
     speakers = np.array([0])
-    texts = np.array([preprocess_arabic(text, preprocess_config, bw=bw, ts=apply_tshkeel)])
+    texts = np.array([preprocess_arabic(text, preprocess_config, bw=bw, ts=apply_tshkeel, ph=ph)])
     text_lens = np.array([len(texts[0])])
     batchs = [(ids, raw_texts, speakers, texts, text_lens, max(text_lens))]
     synthesize(model, "", configs, vocoder, batchs, control_values)

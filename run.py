@@ -35,6 +35,6 @@ class TextToSpeech:
             self.configs, self.vocoder_config_path, self.speaker_pre_trained_path,Model_URL
         )
 
-    def synthesize(self, text, bw=False, apply_tshkeel=False, controls=(1.0, 1.0, 1.0)):
+    def synthesize(self, text, bw=False, ph=False, apply_tshkeel=False, controls=(1.0, 1.0, 1.0)):
         p_control, e_control, d_control = controls
-        infer_tts(text, self.model, self.vocoder, self.configs, bw=bw, apply_tshkeel=apply_tshkeel, pitch_control=p_control, energy_control=e_control, duration_control=d_control)
+        infer_tts(text, self.model, self.vocoder, self.configs, bw=bw, apply_tshkeel=apply_tshkeel, ph=ph, pitch_control=p_control, energy_control=e_control, duration_control=d_control)
